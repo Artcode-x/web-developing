@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Урок "Асинхронность"</title>
+  </head>
+
+  <body>
+    <h1 id="page-title">Список задач</h1>
+    <ul class="tasks" id="list">
+      <!-- Список рендерится из JS -->
+    </ul>
+    <br />
+    <div class="form">
+      <h3 class="form-title">Форма добавления</h3>
+      <div class="form-row">
+        Что нужно сделать:
+        <input
+          type="text"
+          id="text-input"
+          class="input"
+          placeholder="Выпить кофе"
+        />
+      </div>
+      <br />
+      <button class="button" id="add-button">Добавить</button>
+    </div>
+  </body>
+
+  <script>
+    const buttonElement = document.getElementById("add-button");
+    const listElement = document.getElementById("list");
+    const textInputElement = document.getElementById("text-input");
+
+
+    // Запросы в API - асинхронные, мы не знаем как долго будет выполняться запрос ( и когда получим ответ )
+// Запрос может выполняться секунды и даже минуты
+   const fetchPromise = fetch( // глобальная ф-ия которая позволяет делать запросы к api
+    // Первым аргументом ф-ия принимает адрес этого api
+      'https://webdev-hw-api.vercel.app/api/todos', 
+      { // вторым - параметры запроса:
+        method: "GET",
+      }
+    )
+
+console.log(fetchPromise);
+// для работы с асинх операторами - сущ-ет обьект promise. 
+// Позволяет подписаться на успешное выполнение асинх-ой операции и выполнить какой то код
+
+// у promise есть метод "then", который позволяет навесить обработчик успешного выполнения этого promise-a.(а точнее этой асинхронной операции, которую этот promise представляет)
+fetchPromise.then((response) => { // в обработчик рез-та, приходит сам ответ который мы получили от api - response
+//                              console.log(response);
+const jsonPromise = response.json() // у обьекта ответа вызовем специальную ф-ию json
+// которая преобразует те данные которые посылает нам api в формат json. И нам их отдаст
+// метод json также асинхронный. это значит что он тоже возвращает promise, а не результат сразу.
+
+//Нам нужно также подписаться на результат выполнения этой операции с помощью метода then
+jsonPromise.then((responseData) => { // в резултат приходят уже данные, responseData
+console.log(responseData); // В переменной responseData лежат данные которые нам прислал сервер
+
+tasks = responseData.todos; // теперь из resData по ключу todos мы можем достать массив задач. А затем положить в локальное хранилище (переменную tasks)
+// Затем отрендерить список
+renderTasks();
+});
+});
+
+// buttonElement.addEventListener("click", () => {
+
+// })
+
+    // TODO: Получать из хранилища данных
+    let tasks = [
+      {
+        text: "Купить чай"
+      },
+      {
+        text: "Заварить чай"
+      },
+      {
+        text: "Выпить чай"
+      }
+    ];
+
+const pTitle = document.getElementById("page-title");
+pTitle.addEventListener("click", () => {
+  // textContent - безопасная альтернатива innerHTML,
+  // Вставленный через textContent текст не интерпретируется браузером как html.
+pTitle.textContent = "3";
+setTimeout(() => {
+  pTitle.textContent ="2"; 
+  setTimeout(() => {
+    pTitle.textContent = "1";
+    setTimeout(() => {
+      pTitle.textContent = "Список задач";
+    }, 1000);
+    }, 1000);
+  }, 1000);
+});
+
+    const renderTasks = () => {
+      const tasksHtml = tasks
+        .map((task, index) => {
+          return `
+          <li class="task">
+            <p class="task-text">
+              ${task.text
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")}
+              <button data-index="${index}" class="button delete-button">Удалить</button>
+            </p>
+          </li>`;
+        })
+        .join("");
+
+      listElement.innerHTML = tasksHtml;
+      const deleteButtons = document.querySelectorAll(".delete-button");
+
+      for (const deleteButton of deleteButtons) {
+        deleteButton.addEventListener("click", (event) => {
+          event.stopPropagation();
+          
+         deleteButton.innerHTML = "Задача удаляется..."; 
+         setTimeout(() => {
+          const index = deleteButton.dataset.index;
+          // TODO: Удалять из хранилища данных
+          tasks.splice(index, 1);
+         
+          
+          renderTasks();
+        }, 1000);
+      });
+    };
+  }
+
+    renderTasks();
+
+    buttonElement.addEventListener("click", () => {
+      if (textInputElement.value === "") {
+        return;
+      }
+
+      // TODO: Добавлять задачу в хранилище данных
+      tasks.push({
+        text: textInputElement.value
+      });
+
+      renderTasks();
+
+      textInputElement.value = "";
+    });
+  </script>
+</html>
