@@ -1,0 +1,29 @@
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Проект "Комменты"</title>
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+    
+
+    <div class="container">
+        <p id="loader-start"></p>
+        <ul class="comments" id="box">
+            <!-- код отсюда теперь в массиве js-->
+        </ul>
+        <div>
+            <p id="loader-post">Комментарий добавляется...</p>
+        </div>
+        <div id="send-form" class="add-form">
+            <input type="text" id="name-input" class="add-form-name" placeholder="Введите ваше имя" />
+            <textarea type="textarea" id="text-input" value="test-text" class="add-form-text"
+                placeholder="Введите ваш коментарий" rows="4"></textarea>
+            <div class="add-form-row">
+                <button id="add-button" class="add-form-button">Написать</button>
+            </div>
+        </div>
+    </div>
+    <script type="module" src="./general.js"></script>
+</body>
+</html>
