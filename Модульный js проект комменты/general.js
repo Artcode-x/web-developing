@@ -1,30 +1,5 @@
-l>
-<html>
-<head>
-    <meta charset="utf-8" />
-    <title>Проект "Комменты"</title>
-    <link rel="stylesheet" href="styles.css" />
-</head>
-<body>
-    <div class="container">
-        <p id="loader-start"></p>
-        <ul class="comments" id="box">
-            <!-- код отсюда теперь в массиве js-->
-        </ul>
-        <div>
-            <p id="loader-post">Комментарий добавляется...</p>
-        </div>
-        <div id="send-form" class="add-form">
-            <input type="text" id="name-input" class="add-form-name" placeholder="Введите ваше имя" />
-            <textarea type="textarea" id="text-input" value="test-text" class="add-form-text"
-                placeholder="Введите ваш коментарий" rows="4"></textarea>
-            <div class="add-form-row">
-                <button id="add-button" class="add-form-button">Написать</button>
-            </div>
-        </div>
-    </div>
-</body>
-<script>
+import { getAllCom, sendCom } from "./scriptApi.js"
+
     const buttonElement = document.getElementById('add-button'); // +
     //const listElement = document.getElementById('list');
     const nameInputElement = document.getElementById('name-input'); // +
@@ -35,36 +10,28 @@ l>
     const mainForm = document.querySelector(".add-form");
     const loaderPostElement = document.getElementById("loader-post");
     const quoteNameElement = document.getElementById("quote__name")
-    // function getAllcommentsFromServer(getAllComments) {
-    // }
-    // newBox.disabled = true;
-    // newBox.textContent = 'Данные с сервера в процессе получения';
+
     loaderStartElement.textContent = 'Данные с сервера загружаются...';
     // Создаем функцию, в которой запрашиваем данные из хранилища
-    const getAllComments = () => {
-        return fetch('https://webdev-hw-api.vercel.app/api/v1/:alexandr-b/comments', {
-            method: "GET",
-        })
-            .then((response) => {
-                // Запускаем преобразовываем "сырые" данные от API в json формат
-                return response.json();
-            })
-            .then((responseData) => {
-                icomments = responseData.comments.map((comment) => {
-                    return {
-                        name: comment.author.name,
-                        date: new Date(comment.date).toLocaleString("ru-RU", options),
-                        text: comment.text,
-                        counter: comment.likes,
-                        isliked: false,
-                    };
-                });
-                renderIcomments();
-            })
-            .then(() => {
-                loaderStartElement.style.display = "none";
+   
+ const getAllComments = () => {
+   
+        getAllCom().then((responseData) => {
+            icomments = responseData.comments.map((comment) => {
+                return {
+                    name: comment.author.name,
+                    date: new Date(comment.date).toLocaleString("ru-RU", options),
+                    text: comment.text,
+                    counter: comment.likes,
+                    isliked: false,
+                };
             });
-    };
+            renderIcomments();
+        })
+        .then(() => {
+            loaderStartElement.style.display = "none";
+        });
+};
     // Делаем невидимым сообщение "комментарии добавляются" 
     // если закомментить - постоянно будет отображаться
     loaderPostElement.style.display = "none";
@@ -76,17 +43,7 @@ l>
             likeButtonElement.addEventListener("click", (event) => {
                 event.stopPropagation();
                 const index = likeButtonElement.dataset.index;
-                // с помощью св-ва dataset можно получить доступ к data-атрибутам с пом-ю js (у эл-та dom дерева)
-                // delay(2000).then(() => { // лайки с задержкой
-                //  if (icomments[index].isLiked === false) {
-                //    icomments[index].paint = "-active-like";
-                //    icomments[index].counter += 1;
-                //    icomments[index].isLiked = true;
-                //  } else {
-                //    icomments[index].paint = '';
-                //    icomments[index].counter -= 1;
-                //    icomments[index].isLiked = false;
-                //  }
+            
                 if (icomments[index].isLiked === false) {
                     icomments[index].isLiked = true;
                     icomments[index].counter += 1;
@@ -110,24 +67,13 @@ l>
             nameInputElement.classList.add("error"); textInputElement.classList.add("error");
             return;
         }
-        // Что тут создается? Что значит options?
-        const xdate = new Date().toLocaleString("ru-RU", options);
+        
         // Затем идет добавление комментария на сервер
         // buttonElement.disabled = true;
         // buttonElement.textContent = 'Комментарий отправляется';
         // genForm.disabled = true;
         // genForm.textContent = 'Комментарий отправляется...';
-        fetch('https://webdev-hw-api.vercel.app/api/v1/:alexandr-b/comments', {
-            method: "POST",
-            body: JSON.stringify({ // в body запроса мы передали json строку с обьектом, которую требует api
-                name: protectHtmlString(nameInputElement.value),
-                text: protectHtmlString(textInputElement.value),
-                date: date,
-                counter: 0,
-                liked: false,
-            }),
-        })
-            .then((response) => { // в ф-ии then, в обработчике, мы ответ преобразовали в json строку
+        sendCom(protectHtmlString(nameInputElement.value), protectHtmlString(textInputElement.value)).then((response) => { // в ф-ии then, в обработчике, мы ответ преобразовали в json строку
          //     console.log(response);
 
              if (response.status === 400) {
@@ -153,7 +99,6 @@ l>
                 // переносим сюда инпуты чтобы информация в них сохранялась после обновления страницы
 
 
-
             })
             .then(() => {
                 loaderPostElement.style.display = "none"; // когда отрисовались комменты, мы должны скрыть надпись 'комментарии добавляются'
@@ -176,38 +121,10 @@ l>
                         break;
                 }
 
-               // renderIcomments();
-        // nameInputElement.value = "";
-        // textInputElement.value = "";
+
 
                 return console.warn(error); 
-            });
-                // if (error === "Имя и комментарий должны быть не короче 3 символов") {
-                //     alert(error)
-                // } if (error === "Сервер упал") {
-                //     alert(error)
-                // } {
-                //     alert("Кажется у вас сломался интернет - попробуйте позже");
-                // }
-             // alert("Запрос не был отправлен, попробуйте позже"); // в случае если пропадет интернет, будем выдавать эту ошибку
-           
-             // обязательно нужно указать для вывода сообщения об ошибке (Some error) в следующем промисе
-            //  console.log(error);
-            
-            // .then ((data) => {
-            //   console.log(data);
-            // })
-            // ф-ия catch привязывается только к цепочке выше. Если после catch будут какие - либо then, то ошибки внутри их уже не будет
-            // Соответственно после catch можно продолжать цепочку промисов
-            // .then ((data) => {
-            //   return "Я волна, новая волна"
-
-            // }).then ((data) => {
-            //   console.log(data);
-            // });
-        
-               // nameInputElement.value = "";
-               //  textInputElement.value = ""; 
+            }); 
     });
 
 
@@ -357,13 +274,11 @@ function deleteCom() {
         newBox.innerHTML = icommentsHTML; // Рендерим данные с массива
         // };
 
-deleteCom(); 
-
+        deleteCom(); 
         buttonEditText();
         answerOnComments();
         likesButton();
     };
     getAllComments();
     buttonBlock();
-</script>
-</html>
+
